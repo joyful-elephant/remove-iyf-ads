@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 const compression = require("compression");
 const JavaScriptObfuscator = require('javascript-obfuscator');
 
@@ -42,7 +43,7 @@ async function remove_ify_ads(req, res) {
         res.set("Cache-Control", "public, max-age=2592000"); //Tell browser to cache the file for 30 days
         const jsFileOriginalSubPath = matchedGroups[0];
         const cleanedJsFileName = jsFileOriginalSubPath.replace(/[^a-zA-Z0-9-.]/g, '_');
-        const jsFileSaveAbsPath = path.join(__dirname, 'static', 'js', cleanedJsFileName);
+        const jsFileSaveAbsPath = path.join(os.tmpdir(), 'remove-iyf-ads', cleanedJsFileName);
         if (fs.existsSync(jsFileSaveAbsPath)) {
             // The js file already exists in the static files folder
             return res.sendFile(jsFileSaveAbsPath);
@@ -102,7 +103,7 @@ async function getJsFileContent(url) {
 }
 
 
-const port = 8089
+const port = process.env.PORT || 8089
 app.listen(port, '0.0.0.0', () => {
     console.log(`Server started on port ${port}`);
 });
