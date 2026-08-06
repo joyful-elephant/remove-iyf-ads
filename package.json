@@ -12,6 +12,6 @@
   "dependencies": {
     "compression": "^1.7.4",
     "express": "^4.21.0",
-    "javascript-obfuscator": "^4.1.1"
+    "terser": "^5.31.0"
   }
 }

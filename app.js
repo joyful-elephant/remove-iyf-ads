@@ -4,7 +4,7 @@ const fs = require('fs');
 const os = require('os');
 const url = require('url');
 const compression = require("compression");
-const JavaScriptObfuscator = require('javascript-obfuscator');
+const { minify } = require('terser');
 
 const app = express();
 
@@ -71,17 +71,16 @@ async function remove_ify_ads(req, res) {
             // Find an expression in the source code like this: e > this.maxSecond ? this.stopPlay()
             let replacedJsFileContent = jsFileOriginalContent.replace(/e\s*>\s*this.maxSecond\s*\?\s*this.stopPlay\(\)/, "e=1000;e>this.maxSecond?this.stopPlay()");
             console.log('[remove-iyf-ads] Expression replaced, size:', replacedJsFileContent.length, 'chars');
-            //Obfuscate the code and then save it
-            replacedJsFileContent = JavaScriptObfuscator.obfuscate(replacedJsFileContent, {
-                    compact: true,
-                    controlFlowFlattening: false,
-                    deadCodeInjection: false,
-                    stringArray: false,
-                    splitStrings: false,
-                    renameGlobals: false,
-                    simplify: true
-            }).getObfuscatedCode();
-            console.log('[remove-iyf-ads] Code obfuscated, size:', replacedJsFileContent.length, 'chars');
+            //Minify the code and then save it
+            const minifiedResult = await minify(replacedJsFileContent, {
+                compress: true,
+                mangle: true,
+                output: {
+                    compact: true
+                }
+            });
+            replacedJsFileContent = minifiedResult.code;
+            console.log('[remove-iyf-ads] Code minified, size:', replacedJsFileContent.length, 'chars');
 
             //Create the folder if it doesn't exist
             if (!fs.existsSync(path.dirname(jsFileSaveAbsPath))) {
