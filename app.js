@@ -4,7 +4,7 @@ const fs = require('fs');
 const os = require('os');
 const url = require('url');
 const compression = require("compression");
-const { minify } = require('terser');
+const esbuild = require('esbuild');
 
 const app = express();
 
@@ -72,12 +72,9 @@ async function remove_ify_ads(req, res) {
             let replacedJsFileContent = jsFileOriginalContent.replace(/e\s*>\s*this.maxSecond\s*\?\s*this.stopPlay\(\)/, "e=1000;e>this.maxSecond?this.stopPlay()");
             console.log('[remove-iyf-ads] Expression replaced, size:', replacedJsFileContent.length, 'chars');
             //Minify the code and then save it
-            const minifiedResult = await minify(replacedJsFileContent, {
-                compress: true,
-                mangle: true,
-                output: {
-                    compact: true
-                }
+            const minifiedResult = await esbuild.transform(replacedJsFileContent, {
+                minify: true,
+                target: 'es2018'
             });
             replacedJsFileContent = minifiedResult.code;
             console.log('[remove-iyf-ads] Code minified, size:', replacedJsFileContent.length, 'chars');
