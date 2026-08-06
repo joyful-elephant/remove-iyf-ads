@@ -70,9 +70,16 @@ async function remove_ify_ads(req, res) {
 
             // Find an expression in the source code like this: e > this.maxSecond ? this.stopPlay()
             let replacedJsFileContent = jsFileOriginalContent.replace(/e\s*>\s*this.maxSecond\s*\?\s*this.stopPlay\(\)/, "e=1000;e>this.maxSecond?this.stopPlay()");
+            console.log('[remove-iyf-ads] Expression replaced, size:', replacedJsFileContent.length, 'chars');
             //Obfuscate the code and then save it
             replacedJsFileContent = JavaScriptObfuscator.obfuscate(replacedJsFileContent, {
-                compact: true
+                    compact: true,
+                    controlFlowFlattening: false,
+                    deadCodeInjection: false,
+                    stringArray: false,
+                    splitStrings: false,
+                    renameGlobals: false,
+                    simplify: true
             }).getObfuscatedCode();
             console.log('[remove-iyf-ads] Code obfuscated, size:', replacedJsFileContent.length, 'chars');
 
