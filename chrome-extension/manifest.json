@@ -1,0 +1,58 @@
+{
+  "name": "爱壹帆去广告",
+  "manifest_version": 3,
+  "version": "1.0.7",
+  "description": "去除爱壹帆（www.iyf.tv, www.yfsp.tv, www.aiyifan.tv）每20分钟播放一次的广告。",
+  "action": {},
+  "icons": {
+    "16": "icon.png",
+    "32": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "*.js",
+        "*.css",
+        "*.html",
+        "*.map"
+      ],
+      "matches": [
+        "https://www.iyf.tv/*",
+        "https://www.yfsp.tv/*",
+        "https://www.aiyifan.tv/*"
+      ]
+    }
+  ],
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "ruleset_1",
+        "enabled": true,
+        "path": "rules_1.json"
+      }
+    ]
+  },
+  "permissions": [
+    "declarativeNetRequest"
+  ],
+  "host_permissions": [
+    "*://www.iyf.tv/*",
+    "*://www.yfsp.tv/*",
+    "*://www.aiyifan.tv/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "*://www.iyf.tv/*",
+        "*://www.yfsp.tv/*",
+        "*://www.aiyifan.tv/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_start"
+    }
+  ]
+}

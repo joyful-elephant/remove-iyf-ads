@@ -1,0 +1,10 @@
+[
+	{
+		"id" : 1,
+		"priority": 1,
+		"action" : { "type" : "redirect","redirect": { "regexSubstitution": "https://www.multilanes.com/remove-iyf-ads?original_url=\\0" } },
+		"condition" : {		  
+		  "regexFilter": "^https?://(.+\\.)?(iyf|yfsp|aiyifan)\\.tv/(.+/)?main.*\\.js(\\?.*|$)"
+		}
+	}
+]
