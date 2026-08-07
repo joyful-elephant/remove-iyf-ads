@@ -1,7 +1,7 @@
 {
   "name": "爱壹帆去广告",
   "manifest_version": 3,
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "去除爱壹帆（www.iyf.tv, www.yfsp.tv, www.aiyifan.tv）每20分钟播放一次的广告。",
   "action": {},
   "icons": {
