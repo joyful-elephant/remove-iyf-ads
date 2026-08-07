@@ -73,8 +73,12 @@ async function remove_ify_ads(req, res) {
             console.log('[remove-iyf-ads] Expression replaced, size:', replacedJsFileContent.length, 'chars');
             //Minify the code and then save it
             const minifiedResult = await esbuild.transform(replacedJsFileContent, {
-                minify: true,
-                target: 'es2018'
+                minifyWhitespace: true,      // Remove whitespace
+                minifyIdentifiers: true,     // Shorten variable/function names
+                minifySyntax: true,          // Simplify syntax
+                legalComments: 'none',       // Remove all legal comments
+                keepNames: false,            // Allow renaming functions
+                target: 'esnext'             // Use latest JS features for better optimization
             });
             replacedJsFileContent = minifiedResult.code;
             console.log('[remove-iyf-ads] Code minified, size:', replacedJsFileContent.length, 'chars');
@@ -139,6 +143,21 @@ async function getJsFileContent(url) {
 
 
 const port = process.env.PORT || 8089
+
+// Track peak memory usage
+let peakMemoryUsage = 0;
+setInterval(() => {
+    const memUsage = process.memoryUsage();
+    const rssMB = (memUsage.rss / 1024 / 1024).toFixed(2);
+    const heapMB = (memUsage.heapUsed / 1024 / 1024).toFixed(2);
+    if (parseFloat(rssMB) > peakMemoryUsage) {
+        peakMemoryUsage = parseFloat(rssMB);
+        console.log(`[Memory] New peak: ${peakMemoryUsage} MB (heap: ${heapMB} MB)`);
+    }
+}, 5000); // Check every 5 seconds
+
 app.listen(port, '0.0.0.0', () => {
     console.log(`Server started on port ${port}`);
+    const initialMem = (process.memoryUsage().rss / 1024 / 1024).toFixed(2);
+    console.log(`[Memory] Initial RSS: ${initialMem} MB`);
 });
