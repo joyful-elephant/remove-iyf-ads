@@ -91,8 +91,8 @@ async function remove_ify_ads(req, res) {
 // Helper function to replace ads-related code in JS content
 // Returns the replaced code. If no ads code found, the returned string equals the input.
 function replaceAdsCode(jsCode) {
-    let replaced = jsCode.replace(/play\(\)\{.{0,100}this\.startPlay/, "play(){return; this.startPlay");
-    replaced = replaced.replace(/isFilterAds\s*:\s*function\(\)\s*\{/, "isFilterAds:function(){return true;");
+    let replaced = jsCode.replace(/play\(\)\{.{0,100}this\.startPlay/, "play(){return; this.startPlay"); //For desktop main*.js file.
+    replaced = replaced.replace(/isFilterAds\s*:\s*function\(\)\s*\{/, "isFilterAds:function(){return true;"); //For mobile chunk*.js file.
     if (replaced === jsCode) {
         console.log('[remove-iyf-ads] No ads related code found in this file.');
     } else {
