@@ -1,0 +1,17 @@
+{
+  "name": "obfuscate-server",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "express": "^4.21.0",
+    "javascript-obfuscator": "^5.5.0",
+    "multer": "^2.2.0"
+  }
+}
