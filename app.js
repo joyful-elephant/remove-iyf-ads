@@ -56,65 +56,79 @@ async function remove_ify_ads(req, res) {
         res.set("Cache-Control", "public, max-age=2592000"); //Tell browser to cache the file for 30 days
         const jsFileOriginalSubPath = matchedGroups[0];
         const cleanedJsFileName = jsFileOriginalSubPath.replace(/[^a-zA-Z0-9-.]/g, '_');
-        const jsFileSaveAbsPath = path.join(os.tmpdir(), 'remove-iyf-ads', cleanedJsFileName);
-        console.log('[remove-iyf-ads] Saving file to:', jsFileSaveAbsPath);
-        if (fs.existsSync(jsFileSaveAbsPath)) {
-            // The js file already exists in the static files folder
-            console.log('[remove-iyf-ads] File already exists, serving cached file');
-            return res.sendFile(jsFileSaveAbsPath);
-        } else {
-            // The js file doesn't exist in the static files folder, so we need to generate it
-            console.log('[remove-iyf-ads] File not found, fetching original JS from:', originalUrl);
-            const jsFileOriginalContent = await getJsFileContent(originalUrl);
-            console.log('[remove-iyf-ads] Original JS fetched, size:', jsFileOriginalContent.length, 'chars');
-
-            // Find an expression in the source code like this: e > this.maxSecond ? this.stopPlay()
-            let replacedJsFileContent = jsFileOriginalContent.replace(/e\s*>\s*this.maxSecond\s*\?\s*this.stopPlay\(\)/, "e=1000;e>this.maxSecond?this.stopPlay()");
-            console.log('[remove-iyf-ads] Expression replaced, size:', replacedJsFileContent.length, 'chars');
-            // Try to obfuscate via remote API first, fallback to local esbuild minification
-            try {
-                console.log('[remove-iyf-ads] Trying remote obfuscate API...');
-                const obfResponse = await fetch('https://www.multilanes.com/api/obfuscate', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-api-key': 'obf-sk-a7f3e9b1c4d8462e'
-                    },
-                    body: JSON.stringify({ code: replacedJsFileContent })
-                });
-                if (!obfResponse.ok) {
-                    throw new Error(`Remote obfuscate API returned status ${obfResponse.status}`);
-                }
-                const obfData = await obfResponse.json();
-                if (!obfData.obfuscated) {
-                    throw new Error('Remote obfuscate API returned no obfuscated code');
-                }
-                replacedJsFileContent = obfData.obfuscated;
-                console.log('[remove-iyf-ads] Code obfuscated via remote API, size:', replacedJsFileContent.length, 'chars');
-            } catch (remoteErr) {
-                // Fallback: use local esbuild minification
-                console.log('[remove-iyf-ads] Remote obfuscate failed (' + remoteErr.message + '), falling back to local esbuild minify');
-                const minifiedResult = await esbuild.transform(replacedJsFileContent, {
-                    minifyWhitespace: true,      // Remove whitespace
-                    minifyIdentifiers: true,     // Shorten variable/function names
-                    minifySyntax: true,          // Simplify syntax
-                    legalComments: 'none',       // Remove all legal comments
-                    keepNames: false,            // Allow renaming functions
-                    target: 'esnext'             // Use latest JS features for better optimization
-                });
-                replacedJsFileContent = minifiedResult.code;
-                console.log('[remove-iyf-ads] Code minified locally, size:', replacedJsFileContent.length, 'chars');
-            }
-
-            //Create the folder if it doesn't exist
-            if (!fs.existsSync(path.dirname(jsFileSaveAbsPath))) {
-                fs.mkdirSync(path.dirname(jsFileSaveAbsPath), { recursive: true });
-            }
-            // Save the replaced Javascript code into the /static/js folder
-            fs.writeFileSync(jsFileSaveAbsPath, replacedJsFileContent);
-            console.log('[remove-iyf-ads] File saved successfully');
-            return res.sendFile(jsFileSaveAbsPath);
+        const jsFileSaveAbsPathHighObf = path.join(os.tmpdir(), 'remove-iyf-ads', cleanedJsFileName + '.high-obfuscated');
+        const jsFileSaveAbsPathSimpleObf = path.join(os.tmpdir(), 'remove-iyf-ads', cleanedJsFileName + '.simple-obfuscated');        
+        console.log('[remove-iyf-ads] Cache paths:', jsFileSaveAbsPathHighObf, '/', jsFileSaveAbsPathSimpleObf);
+    
+        // Check for remote-obfuscated cache first (best quality)
+        if (fs.existsSync(jsFileSaveAbsPathHighObf)) {
+            console.log('[remove-iyf-ads] Serving cached high-obfuscated file');
+            return res.sendFile(jsFileSaveAbsPathHighObf);
         }
+    
+        // Check for local-esbuild cache
+        if (fs.existsSync(jsFileSaveAbsPathSimpleObf)) {
+            console.log('[remove-iyf-ads] Found simple-obfuscated cache, trying remote API for high-obfuscated version...');
+            // Try to get high-obfuscated version via remote API
+            try {
+                const originalJsContent = await getJsFileContent(originalUrl);
+                let replacedContent = originalJsContent.replace(/e\s*>\s*this\.maxSecond\s*\?\s*this\.stopPlay\(\)/, "e=1000;e>this.maxSecond?this.stopPlay()");
+                const obfuscatedCode = await obfuscateViaRemoteApi(replacedContent, 6000);
+                // Save high-obfuscated version
+                if (!fs.existsSync(path.dirname(jsFileSaveAbsPathHighObf))) {
+                    fs.mkdirSync(path.dirname(jsFileSaveAbsPathHighObf), { recursive: true });
+                }
+                fs.writeFileSync(jsFileSaveAbsPathHighObf, obfuscatedCode);
+                console.log('[remove-iyf-ads] High-obfuscated version cached, serving it now');
+                return res.sendFile(jsFileSaveAbsPathHighObf);
+            } catch (e) {
+                console.log('[remove-iyf-ads] Remote API failed (timeout/error), serving simple-obfuscated cached file');
+            }
+            // Fallback to local-esbuild cached file
+            console.log('[remove-iyf-ads] Serving cached simple-obfuscated file');
+            return res.sendFile(jsFileSaveAbsPathSimpleObf);
+        }
+    
+        // No cache exists, need to generate
+        console.log('[remove-iyf-ads] No cache found, fetching original JS from:', originalUrl);
+        const jsFileOriginalContent = await getJsFileContent(originalUrl);
+        console.log('[remove-iyf-ads] Original JS fetched, size:', jsFileOriginalContent.length, 'chars');
+    
+        // Find an expression in the source code like this: e > this.maxSecond ? this.stopPlay()
+        let replacedJsFileContent = jsFileOriginalContent.replace(/e\s*>\s*this\.maxSecond\s*\?\s*this\.stopPlay\(\)/, "e=1000;e>this.maxSecond?this.stopPlay()");
+        console.log('[remove-iyf-ads] Expression replaced, size:', replacedJsFileContent.length, 'chars');
+        let obfuscationMethod = 'simple-obfuscated'; // Track which method was used
+    
+        // Try to obfuscate via remote API first, fallback to local esbuild minification
+        try {
+            console.log('[remove-iyf-ads] Trying remote obfuscate API...');
+            replacedJsFileContent = await obfuscateViaRemoteApi(replacedJsFileContent, 10000);
+            obfuscationMethod = 'high-obfuscated';
+            console.log('[remove-iyf-ads] Code obfuscated via remote API (high-obfuscated), size:', replacedJsFileContent.length, 'chars');
+        } catch (remoteErr) {
+            // Fallback: use local esbuild minification
+            console.log('[remove-iyf-ads] Remote API failed (' + remoteErr.message + '), falling back to simple-obfuscated (esbuild)');
+            const minifiedResult = await esbuild.transform(replacedJsFileContent, {
+                minifyWhitespace: true,      // Remove whitespace
+                minifyIdentifiers: true,     // Shorten variable/function names
+                minifySyntax: true,          // Simplify syntax
+                legalComments: 'none',       // Remove all legal comments
+                keepNames: false,            // Allow renaming functions
+                target: 'esnext'             // Use latest JS features for better optimization
+            });
+            replacedJsFileContent = minifiedResult.code;
+            console.log('[remove-iyf-ads] Code minified locally (simple-obfuscated), size:', replacedJsFileContent.length, 'chars');
+        }
+    
+        //Create the folder if it doesn't exist because Render may delete my folder from time to time
+        if (!fs.existsSync(path.dirname(jsFileSaveAbsPathHighObf))) {
+            fs.mkdirSync(path.dirname(jsFileSaveAbsPathHighObf), { recursive: true });
+        }
+        // Save with appropriate suffix
+        const savePath = obfuscationMethod === 'high-obfuscated' ? jsFileSaveAbsPathHighObf : jsFileSaveAbsPathSimpleObf;
+        fs.writeFileSync(savePath, replacedJsFileContent);
+        console.log('[remove-iyf-ads] File saved as', obfuscationMethod, 'to', savePath);
+        return res.sendFile(savePath);
     } else {
         console.log('[remove-iyf-ads] URL did not match expected pattern, redirecting to original URL');
         //This logic shouldn't happen, but if it happens, we redirect to the original URL with a dummy parameter as the current system millisecond 
@@ -122,6 +136,36 @@ async function remove_ify_ads(req, res) {
         const redirectUrl = url.parse(originalUrl, true);
         redirectUrl.query.a_dummy_parameter = String(Date.now())  ;
         return res.redirect(url.format(redirectUrl));
+    }
+}
+
+// Helper function to obfuscate JS code via remote API with timeout
+// Returns the obfuscated code, or throws on failure/timeout
+async function obfuscateViaRemoteApi(jsCode, timeoutMs) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        const obfResponse = await fetch('https://www.multilanes.com/api/obfuscate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': 'obf-sk-a7f3e9b1c4d8462e'
+            },
+            body: JSON.stringify({ code: jsCode }),
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        if (!obfResponse.ok) {
+            throw new Error(`Remote obfuscate API returned status ${obfResponse.status}`);
+        }
+        const obfData = await obfResponse.json();
+        if (!obfData.obfuscated) {
+            throw new Error('Remote obfuscate API returned no obfuscated code');
+        }
+        return obfData.obfuscated;
+    } catch (err) {
+        clearTimeout(timeoutId);
+        throw err;
     }
 }
 

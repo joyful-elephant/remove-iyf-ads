@@ -99,36 +99,18 @@ app.post('/api/obfuscate', requireApiKey, upload.single('file'), (req, res) => {
 
         const obfuscatedResult = JavaScriptObfuscator.obfuscate(jsCode, {
             compact: true,
-            controlFlowFlattening: true,
-            controlFlowFlatteningThreshold: 0.75,
-            deadCodeInjection: true,
-            deadCodeInjectionThreshold: 0.4,
+            controlFlowFlattening: false,
+            deadCodeInjection: false,
             debugProtection: false,
             disableConsoleOutput: false,
             identifierNamesGenerator: 'hexadecimal',
             log: false,
-            numbersToExpressions: true,
-            renameGlobals: true,
+            renameGlobals: false,
+            rotateStringArray: false,
             selfDefending: false,
-            simplify: true,
-            splitStrings: true,
-            splitStringsChunkLength: 5,
-            stringArray: true,
-            stringArrayCallsTransform: true,
-            stringArrayCallsTransformThreshold: 0.75,
-            stringArrayEncoding: ['base64'],
-            stringArrayIndexShift: true,
-            stringArrayRotate: true,
-            stringArrayShuffle: true,
-            stringArrayWrappersCount: 2,
-            stringArrayWrappersChainedCalls: true,
-            stringArrayWrappersParametersMaxCount: 4,
-            stringArrayWrappersType: 'variable',
-            stringArrayThreshold: 0.75,
-            target: 'node',
-            unicodeEscapeSequence: false,
-            transformObjectKeys: true,
-            reservedStrings: []
+            stringArray: false,
+            transformObjectKeys: false,
+            unicodeEscapeSequence: false
         });
 
         const obfuscatedCode = obfuscatedResult.getObfuscatedCode();
