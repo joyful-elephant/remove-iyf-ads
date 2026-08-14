@@ -64,7 +64,7 @@ async function remove_ify_ads(req, res) {
 
     // Core logic: fetch JS, replace ads code, obfuscate
     try {
-        const result = await fetchAndProcess(originalUrl, hasSimpleCache ? 6000 : 10000);
+        const result = await fetchAndProcess(originalUrl, 2000);
         // Success: save as high-obfuscated and serve
         ensureDir(jsFileSaveAbsPathHighObf);
         fs.writeFileSync(jsFileSaveAbsPathHighObf, result.code);
