@@ -127,7 +127,7 @@ app.post('/api/obfuscate', requireApiKey, upload.single('file'), (req, res) => {
     }
 });
 
-const port = process.env.PORT || 8089;
+const port = process.env.PORT || 8090;
 
 app.listen(port, '0.0.0.0', () => {
     console.log(`Obfuscate server started on port ${port}`);

@@ -1,1 +1,2 @@
-Push the code to github and then connect the github code to Render and then tell Render to use "node app.js" to start the server.
+If deploying to Render: Push the code to github and then connect the github code to Render and then tell Render to use "node app.js" to start the server.
+If deploying to my Linux server: Copy app.js, package.json, package-lock.json, and the files in folder obfuscate-server the Linux server. And then refer to the document in project website-for-pioneer-academy.

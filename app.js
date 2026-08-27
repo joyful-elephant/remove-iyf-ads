@@ -150,7 +150,7 @@ async function obfuscateViaRemoteApi(jsCode, timeoutMs) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
     try {
-        const obfResponse = await fetch('https://www.multilanes.com/api/obfuscate', {
+        const obfResponse = await fetch('http://localhost:8090/api/obfuscate', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
