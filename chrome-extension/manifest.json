@@ -1,8 +1,8 @@
 {
   "name": "爱壹帆去广告",
   "manifest_version": 3,
-  "version": "1.0.10",
-  "description": "去除爱壹帆（www.iyf.tv, www.yfsp.tv, www.aiyifan.tv）每20分钟播放一次的广告。",
+  "version": "1.0.12",
+  "description": "去除爱壹帆（www.iyf.tv, www.yfsp.tv, www.aiyifan.tv, www.kubb.tv, www.yifan.tv）每20分钟播放一次的广告。",
   "action": {},
   "icons": {
     "16": "icon.png",
@@ -24,7 +24,11 @@
         "https://www.yfsp.tv/*",
         "https://m.yfsp.tv/*",
         "https://www.aiyifan.tv/*",
-        "https://m.aiyifan.tv/*"
+        "https://m.aiyifan.tv/*",        
+        "https://www.kubb.tv/*",
+        "https://m.kubb.tv/*",
+        "https://www.yifan.tv/*",
+        "https://m.yifan.tv/*"
       ]
     }
   ],
@@ -46,7 +50,11 @@
     "*://www.yfsp.tv/*",
     "*://m.yfsp.tv/*",
     "*://www.aiyifan.tv/*",
-    "*://m.aiyifan.tv/*"
+    "*://m.aiyifan.tv/*",
+    "*://www.kubb.tv/*",
+    "*://m.kubb.tv/*",
+    "*://www.yifan.tv/*",
+    "*://m.yifan.tv/*"
   ],
   "content_scripts": [
     {
@@ -56,7 +64,11 @@
         "*://www.yfsp.tv/*",
         "*://m.yfsp.tv/*",
         "*://www.aiyifan.tv/*",
-        "*://m.aiyifan.tv/*"
+        "*://m.aiyifan.tv/*",
+        "*://www.kubb.tv/*",
+        "*://m.kubb.tv/*",
+        "*://www.yifan.tv/*",
+        "*://m.yifan.tv/*"
       ],
       "js": [
         "content.js"
